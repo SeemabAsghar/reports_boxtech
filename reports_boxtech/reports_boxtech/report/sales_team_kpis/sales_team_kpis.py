@@ -637,8 +637,6 @@ def group_by_client(activities):
             grouped[customer]["last_activity_date"] = row.get("date")
 
     return list(grouped.values())
-
-
 def group_by_sales_person(activities, filters):
 
     selected_sp = filters.get("sales_person")
@@ -656,7 +654,13 @@ def group_by_sales_person(activities, filters):
             AND u.name NOT IN (
                 'superadmin@boxtech.ai'
             )
+            ORDER BY u.name
         """, as_list=True)]
+
+    frappe.log_error(
+        title="Sales Team KPI - All Sales Users",
+        message=str(all_sales_users)
+    )
 
     grouped = {}
 
@@ -673,7 +677,12 @@ def group_by_sales_person(activities, filters):
         }
 
     for row in activities:
+
         sp = row.get("sales_person") or "Unknown"
+
+        # Skip superadmin completely
+        if sp == "superadmin@boxtech.ai":
+            continue
 
         if sp not in grouped:
             grouped[sp] = {
@@ -688,6 +697,7 @@ def group_by_sales_person(activities, filters):
             }
 
         grouped[sp]["total_activities"] += 1
+
         if row["activity_type"] == "Phone Call":
             grouped[sp]["phone_calls"] += 1
 
@@ -706,18 +716,26 @@ def group_by_sales_person(activities, filters):
         if row.get("customer"):
             grouped[sp]["clients"].add(row["customer"])
 
+    frappe.log_error(
+        title="Sales Team KPI - Grouped Users",
+        message=str(list(grouped.keys()))
+    )
+
     final_data = []
 
     for sp, values in grouped.items():
 
         values["unique_clients"] = len(values["clients"])
-
         del values["clients"]
 
         final_data.append(values)
 
-    return final_data
+    frappe.log_error(
+        title="Sales Team KPI - Final Data",
+        message=str(final_data)
+    )
 
+    return final_data
 
 # =========================================================
 # SUMMARY
