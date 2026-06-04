@@ -31,7 +31,6 @@ def execute(filters=None):
     columns = get_columns(filters)
 
     activities = get_all_activities(filters)
-
     data = apply_grouping(filters, activities)
 
     report_summary = get_report_summary(activities)
@@ -549,7 +548,7 @@ def apply_grouping(filters, activities):
         return activities
 
     if group_by == "Sales Person":
-        return group_by_sales_person(activities)
+        return group_by_sales_person(activities, filters)
 
     elif group_by == "Activity Type":
         return group_by_activity_type(activities)
@@ -640,26 +639,52 @@ def group_by_client(activities):
     return list(grouped.values())
 
 
-def group_by_sales_person(activities):
+def group_by_sales_person(activities, filters):
 
-    grouped = defaultdict(lambda: {
-        "sales_person": "",
-        "total_activities": 0,
-        "phone_calls": 0,
-        "emails": 0,
-        "meetings": 0,
-        "quotations": 0,
-        "tasks": 0,
-        "clients": set()
-    })
+    selected_sp = filters.get("sales_person")
+
+    if selected_sp:
+        all_sales_users = [selected_sp]
+    else:
+        all_sales_users = [d[0] for d in frappe.db.sql("""
+            SELECT DISTINCT u.name
+            FROM `tabUser` u
+            INNER JOIN `tabHas Role` hr
+                ON hr.parent = u.name
+            WHERE hr.role = 'My Activity Report User'
+            AND u.enabled = 1
+        """, as_list=True)]
+
+    grouped = {}
+
+    for user in all_sales_users:
+        grouped[user] = {
+            "sales_person": user,
+            "total_activities": 0,
+            "phone_calls": 0,
+            "emails": 0,
+            "meetings": 0,
+            "quotations": 0,
+            "tasks": 0,
+            "clients": set()
+        }
 
     for row in activities:
-
         sp = row.get("sales_person") or "Unknown"
 
-        grouped[sp]["sales_person"] = sp
-        grouped[sp]["total_activities"] += 1
+        if sp not in grouped:
+            grouped[sp] = {
+                "sales_person": sp,
+                "total_activities": 0,
+                "phone_calls": 0,
+                "emails": 0,
+                "meetings": 0,
+                "quotations": 0,
+                "tasks": 0,
+                "clients": set()
+            }
 
+        grouped[sp]["total_activities"] += 1
         if row["activity_type"] == "Phone Call":
             grouped[sp]["phone_calls"] += 1
 
