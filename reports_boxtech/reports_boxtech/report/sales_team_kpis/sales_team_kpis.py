@@ -653,6 +653,9 @@ def group_by_sales_person(activities, filters):
                 ON hr.parent = u.name
             WHERE hr.role = 'My Activity Report User'
             AND u.enabled = 1
+            AND u.name NOT IN (
+                'superadmin@boxtech.ai'
+            )
         """, as_list=True)]
 
     grouped = {}
