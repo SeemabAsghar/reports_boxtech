@@ -36,9 +36,16 @@ def execute(filters=None):
     ]
 
     data = get_data(filters)
+    total_devices = sum(row.get("devices", 0) for row in data)
+
+    data.append({
+        "manufacturer": "Total",
+        "country": "",
+        "customer": "",
+        "devices": total_devices
+    })
 
     return columns, data
-
 
 def get_data(filters):
 
@@ -58,6 +65,13 @@ def get_data(filters):
         conditions += """
             AND c.name = %(customer)s
         """
+
+    order_by = ""
+
+    if filters.get("sort_by") == "Manufacturer":
+        order_by = "ORDER BY cmd.manufacturer"
+    elif filters.get("sort_by") == "Country":
+        order_by = "ORDER BY c.custom_country"
 
     return frappe.db.sql(
         f"""
@@ -80,8 +94,7 @@ def get_data(filters):
             c.custom_country,
             c.name
 
-        ORDER BY
-            devices DESC
+        {order_by}
         """,
         filters,
         as_dict=True
