@@ -5,9 +5,38 @@ import frappe
 
 def execute(filters=None):
 
-    group_by = filters.get("group_by", "Manufacturer")
+    group_by = filters.get("group_by")
 
-    if group_by == "Manufacturer":
+    if not group_by:
+        columns = [
+            {
+                "label": "Manufacturer",
+                "fieldname": "manufacturer",
+                "fieldtype": "Data",
+                "width": 180
+            },
+            {
+                "label": "Country",
+                "fieldname": "country",
+                "fieldtype": "Data",
+                "width": 120
+            },
+            {
+                "label": "Customer",
+                "fieldname": "customer",
+                "fieldtype": "Link",
+                "options": "Customer",
+                "width": 250
+            },
+            {
+                "label": "Devices",
+                "fieldname": "devices",
+                "fieldtype": "Int",
+                "width": 120
+            }
+        ]
+
+    elif group_by == "Manufacturer":
         columns = [
             {
                 "label": "Manufacturer",
@@ -22,6 +51,7 @@ def execute(filters=None):
                 "width": 120
             }
         ]
+
     else:
         columns = [
             {
@@ -40,21 +70,21 @@ def execute(filters=None):
 
     data = get_data(filters)
 
-    total_devices = sum(row.get("devices", 0) for row in data)
+    if group_by:
+        total_devices = sum(row.get("devices", 0) for row in data)
 
-    if group_by == "Manufacturer":
-        data.append({
-            "manufacturer": "Total",
-            "devices": total_devices
-        })
-    else:
-        data.append({
-            "country": "Total",
-            "devices": total_devices
-        })
+        if group_by == "Manufacturer":
+            data.append({
+                "manufacturer": "Total",
+                "devices": total_devices
+            })
+        else:
+            data.append({
+                "country": "Total",
+                "devices": total_devices
+            })
 
     return columns, data
-
 def get_data(filters):
 
     conditions = ""
@@ -74,9 +104,38 @@ def get_data(filters):
             AND c.name = %(customer)s
         """
 
-    group_by = filters.get("group_by", "Manufacturer")
+    group_by = filters.get("group_by")
 
-    if group_by == "Manufacturer":
+    # Original Report
+    if not group_by:
+
+        query = f"""
+            SELECT
+                cmd.manufacturer,
+                c.custom_country AS country,
+                c.name AS customer,
+                COALESCE(SUM(cmd.qty_per_month), 0) AS devices
+
+            FROM `tabCustomer Monthly Devices` cmd
+
+            INNER JOIN `tabCustomer` c
+                ON c.name = cmd.parent
+
+            WHERE 1=1
+            {conditions}
+
+            GROUP BY
+                cmd.manufacturer,
+                c.custom_country,
+                c.name
+
+            ORDER BY
+                cmd.manufacturer,
+                c.custom_country,
+                c.name
+        """
+
+    elif group_by == "Manufacturer":
 
         query = f"""
             SELECT
@@ -98,7 +157,7 @@ def get_data(filters):
                 cmd.manufacturer
         """
 
-    else:
+    else:  # Country
 
         query = f"""
             SELECT
