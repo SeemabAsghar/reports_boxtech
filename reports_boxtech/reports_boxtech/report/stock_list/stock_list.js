@@ -9,11 +9,11 @@ frappe.query_reports["Stock List"] = {
 			options: "Manufacturer"
         },
         {
-            fieldname: "sort_by",
-            label: __("Sort By"),
+            fieldname: "group_by",
+            label: __("Group By"),
             fieldtype: "Select",
-            options: "\nCurrent Stock\nManufacturer\nModel",
-            default: "Current Stock"
+            options: "\nManufacturer\nModel",
+            default: "Manufacturer"
         }
     ]
 };
