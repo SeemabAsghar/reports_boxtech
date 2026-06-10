@@ -327,18 +327,17 @@ def get_customer_activities(filters):
 
         # Status Filter
         if filters.get("status"):
-
             status_map = {
-                "Completed": "✅Complete",
-                "Pending": "⏳In Progress"
-            }
+                "Completed": ["Completed", "✅Complete"],
+                "Pending": ["Pending", "⏳In Progress"],
+                "Rejected": ["Rejected", "❌Rejected"]}
 
-            selected_status = status_map.get(
+            selected_statuses = status_map.get(
                 filters.get("status"),
-                filters.get("status")
+                [filters.get("status")]
             )
 
-            if row.progress != selected_status:
+            if row.progress not in selected_statuses:
                 continue
 
         activities.append({

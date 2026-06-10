@@ -67,7 +67,7 @@ frappe.query_reports["Sales Team KPIs"] = {
             fieldname: "status",
             label: "Status",
             fieldtype: "Select",
-            options: "\nPending\nCompleted\n⏳In Progress\n✅Complete\nOpen\nClosed\nCancelled\nDraft"
+            options: "\nPending\nCompleted\nRejected"
         },
 
         {
