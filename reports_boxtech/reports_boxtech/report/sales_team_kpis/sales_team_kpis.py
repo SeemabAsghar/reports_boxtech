@@ -329,8 +329,7 @@ def get_customer_activities(filters):
         if filters.get("status"):
             status_map = {
                 "Completed": ["Completed", "✅Complete"],
-                "Pending": ["Pending", "⏳In Progress"],
-                "Rejected": ["Rejected", "❌Rejected"]}
+                "Pending": ["Pending", "⏳In Progress"]}
 
             selected_statuses = status_map.get(
                 filters.get("status"),
