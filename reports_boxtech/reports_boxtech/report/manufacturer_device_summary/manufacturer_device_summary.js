@@ -13,7 +13,7 @@ frappe.query_reports["Manufacturer Device Summary"] = {
 
             report.set_filter_value("customer", "");
 
-            report.set_filter_value("sort_by", "");
+            report.set_filter_value("group_by", "");
 
             report.refresh();
         });
@@ -39,8 +39,8 @@ frappe.query_reports["Manufacturer Device Summary"] = {
             options: "Customer"
         },
         {
-            fieldname: "sort_by",
-            label: "Sort By",
+            fieldname: "group_by",
+            label: "Group By",
             fieldtype: "Select",
             options: "\nManufacturer\nCountry"
         }
